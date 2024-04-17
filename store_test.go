@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
-	"log"
 	"testing"
 )
 
@@ -56,8 +56,12 @@ func TestStore(t *testing.T) {
 		t.Error(err)
 	}
 
+	if ok := s.Has(key); !ok {
+		t.Errorf("expected to have key %s", key)
+	}
+
 	b, _ := io.ReadAll(r)
-	log.Println(string(b))
+	fmt.Println(string(b))
 
 	if string(b) != string(data) {
 		t.Errorf("want %s have %s", data, b)
