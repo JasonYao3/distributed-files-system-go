@@ -1,7 +1,9 @@
 package p2p
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -36,13 +38,13 @@ type TCPTransportOpts struct {
 type TCPTransport struct {
 	TCPTransportOpts
 	listener net.Listener
-	rpcch    chan RPC
+	rpcCh    chan RPC
 }
 
 func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	return &TCPTransport{
 		TCPTransportOpts: opts,
-		rpcch:            make(chan RPC),
+		rpcCh:            make(chan RPC),
 	}
 }
 
@@ -50,7 +52,12 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 // for reading the incoming messages received from another peer in the network.
 // read to the channel
 func (t *TCPTransport) Consume() <-chan RPC {
-	return t.rpcch
+	return t.rpcCh
+}
+
+// Close implements the Transport interface.
+func (t *TCPTransport) Close() error {
+	return t.listener.Close()
 }
 
 func (t *TCPTransport) ListenAndAccept() error {
@@ -63,15 +70,20 @@ func (t *TCPTransport) ListenAndAccept() error {
 
 	go t.startAcceptLoop()
 
+	log.Printf("TCP transport listening on port: %s\n", t.ListenAddr)
+
 	return nil
 }
 
 func (t *TCPTransport) startAcceptLoop() {
 	for {
 		conn, err := t.listener.Accept()
+		if errors.Is(err, net.ErrClosed) {
+			return
+		}
+
 		if err != nil {
 			fmt.Printf("TCP accept error: %s\n", err)
-
 		}
 
 		fmt.Printf("new incoming connection %+v\n", conn)
@@ -110,6 +122,6 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 
 		rpc.From = conn.RemoteAddr()
 
-		t.rpcch <- rpc
+		t.rpcCh <- rpc
 	}
 }
