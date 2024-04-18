@@ -170,6 +170,10 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 	return nil
 }
 
+// TODO: implement Delete()
+// delete files in the local machine and send a message to all peers connected
+// so it can also delete files on the peers machines
+
 func (s *FileServer) Stop() {
 	close(s.quitCh)
 }
