@@ -115,7 +115,7 @@ func (s *Store) Write(id string, key string, r io.Reader) (int64, error) {
 	return s.writeStream(id, key, r)
 }
 
-func (s *Store) writeDecrypt(encKey []byte, id string, key string, r io.Reader) (int64, error) {
+func (s *Store) WriteDecrypt(encKey []byte, id string, key string, r io.Reader) (int64, error) {
 	f, err := s.openFileForWriting(id, key)
 	if err != nil {
 		return 0, err

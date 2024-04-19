@@ -128,12 +128,12 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 
 	peer := NewTCPPeer(conn, outbound)
 
-	if err := t.HandshakeFunc(peer); err != nil {
+	if err = t.HandshakeFunc(peer); err != nil {
 		return
 	}
 
 	if t.OnPeer != nil {
-		if err := t.OnPeer(peer); err != nil {
+		if err = t.OnPeer(peer); err != nil {
 			return
 		}
 	}
@@ -141,7 +141,7 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 	// Read loop
 	for {
 		rpc := RPC{}
-		err := t.Decoder.Decode(conn, &rpc)
+		err = t.Decoder.Decode(conn, &rpc)
 		if err != nil {
 			return
 		}
@@ -150,7 +150,7 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 
 		if rpc.Stream {
 			peer.wg.Add(1)
-			fmt.Printf("[%s] incoming stream, waiting..\n", conn.RemoteAddr())
+			fmt.Printf("[%s] incoming stream, waiting...\n", conn.RemoteAddr())
 			peer.wg.Wait()
 			fmt.Printf("[%s] stream closed, resuming read loop\n", conn.RemoteAddr())
 			continue

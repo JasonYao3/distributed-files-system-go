@@ -35,7 +35,7 @@ type FileServer struct {
 }
 
 func NewFileServer(opts FileServerOpts) *FileServer {
-	StoreOpts := StoreOpts{
+	storeOpts := StoreOpts{
 		Root:              opts.StorageRoot,
 		PathTransformFunc: opts.PathTransformFunc,
 	}
@@ -46,7 +46,7 @@ func NewFileServer(opts FileServerOpts) *FileServer {
 
 	return &FileServer{
 		FileServerOpts: opts,
-		store:          NewStore(StoreOpts),
+		store:          NewStore(storeOpts),
 		quitCh:         make(chan struct{}),
 		peers:          make(map[string]p2p.Peer),
 	}
@@ -90,7 +90,7 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		return r, err
 	}
 
-	fmt.Printf("[%s] don't have file (%s) locally, fetching from network..\n", s.Transport.Addr(), key)
+	fmt.Printf("[%s] don't have file (%s) locally, fetching from network...\n", s.Transport.Addr(), key)
 
 	msg := Message{
 		Payload: MessageGetFile{
@@ -109,9 +109,9 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		// First read the file size so we can limit the amount of bytes that we read
 		// from the connection, so it will not keep hanging.
 		var fileSize int64
-		binary.Read(peer, binary.LittleEndian, fileSize)
+		binary.Read(peer, binary.LittleEndian, &fileSize)
 
-		n, err := s.store.writeDecrypt(s.EncKey, s.ID, key, io.LimitReader(peer, fileSize))
+		n, err := s.store.WriteDecrypt(s.EncKey, s.ID, key, io.LimitReader(peer, fileSize))
 		if err != nil {
 			return nil, err
 		}
@@ -150,7 +150,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 		return err
 	}
 
-	time.Sleep(time.Millisecond * 1000)
+	time.Sleep(time.Millisecond * 5)
 
 	peers := []io.Writer{}
 
@@ -254,7 +254,7 @@ func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile) error
 		return err
 	}
 
-	fmt.Printf("[%s] written %d bytes over the network to %s\n", s.Transport.Addr(), n, from)
+	fmt.Printf("[%s] written (%d) bytes over the network to %s\n", s.Transport.Addr(), n, from)
 
 	return nil
 }
